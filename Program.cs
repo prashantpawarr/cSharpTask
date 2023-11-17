@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Data.SqlClient;
-using System.Data;
 using System.IO;
 using OfficeOpenXml;
 
@@ -17,8 +16,7 @@ class Program
         int age;
         DateTime dob;
         string saveOption;
-        string excelFilePath;
-        string notepadFilePath;
+        string filePath;
 
         try
         {
@@ -35,13 +33,15 @@ class Program
             Console.WriteLine("Age: " + age);
             Console.WriteLine("Date of Birth: " + dob.ToString("MM-dd-yyyy"));
 
+            filePath = GetUserFilePath(); // Ask user for the file path
+
             Console.Write("Enter 'excel' to save to Excel, 'database' to save to Database, or 'notepad' to save to Notepad: ");
             saveOption = Console.ReadLine().ToLower();
 
             if (saveOption == "excel")
             {
-                excelFilePath = obj.SaveToExcel(name, age, dob);
-                Console.WriteLine($"Data saved to Excel successfully! File Path: {excelFilePath}");
+                obj.SaveToExcel(name, age, dob, filePath);
+                Console.WriteLine($"Data saved to Excel successfully! File Path: {filePath}");
             }
             else if (saveOption == "database")
             {
@@ -50,8 +50,8 @@ class Program
             }
             else if (saveOption == "notepad")
             {
-                notepadFilePath = obj.SaveToNotepad(name, age, dob);
-                Console.WriteLine($"Data saved to Notepad successfully! File Path: {notepadFilePath}");
+                obj.SaveToNotepad(name, age, dob, filePath);
+                Console.WriteLine($"Data saved to Notepad successfully! File Path: {filePath}");
             }
             else
             {
@@ -65,7 +65,16 @@ class Program
         }
     }
 
-    public string SaveToExcel(string name, int age, DateTime dob)
+    // New method to prompt user for file path
+    static string GetUserFilePath()
+    {
+        Console.Write("Enter the path of the file: ");
+        return Console.ReadLine();
+    }
+
+    // Modify existing methods to accept file path as a parameter
+
+    public void SaveToExcel(string name, int age, DateTime dob, string filePath)
     {
         using (ExcelPackage excelPackage = new ExcelPackage())
         {
@@ -81,51 +90,25 @@ class Program
             worksheet.Cells["C2"].Value = dob.ToString("MM-dd-yyyy");
 
             // Save the package to a file
-            FileInfo excelFile = new FileInfo("UserData.xlsx");
+            FileInfo excelFile = new FileInfo(filePath);
             excelPackage.SaveAs(excelFile);
-
-            return excelFile.FullName;
         }
     }
 
-    public void SaveToDatabase(string name, int age, DateTime dob)
+    public void SaveToNotepad(string name, int age, DateTime dob, string filePath)
     {
-        string connectionString = "Data Source=CTS-D049;Initial Catalog=crudApplication;Integrated Security=True";
-        using (SqlConnection connection = new SqlConnection(connectionString))
-        {
-            connection.Open();
-
-            string insertQuery = "INSERT INTO UserDetails (Name, Age, DateOfBirth) VALUES (@Name, @Age, @DateOfBirth)";
-            using (SqlCommand command = new SqlCommand(insertQuery, connection))
-            {
-                command.Parameters.AddWithValue("@Name", name);
-                command.Parameters.AddWithValue("@Age", age);
-                command.Parameters.AddWithValue("@DateOfBirth", dob);
-
-                command.ExecuteNonQuery();
-            }
-        }
-    }
-
-    public string SaveToNotepad(string name, int age, DateTime dob)
-    {
-        string notepadFilePath = "UserData.txt";
-
         try
         {
-            using (StreamWriter writer = new StreamWriter(notepadFilePath))
+            using (StreamWriter writer = new StreamWriter(filePath))
             {
                 writer.WriteLine($"Name: {name}");
                 writer.WriteLine($"Age: {age}");
                 writer.WriteLine($"Date of Birth: {dob.ToString("MM-dd-yyyy")}");
             }
-
-            return notepadFilePath;
         }
         catch (Exception ex)
         {
             Console.WriteLine("Error saving to Notepad: " + ex.Message);
-            return null;
         }
     }
 }
