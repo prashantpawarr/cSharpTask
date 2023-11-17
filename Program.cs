@@ -18,6 +18,7 @@ class Program
         DateTime dob;
         string saveOption;
         string excelFilePath;
+        string notepadFilePath;
 
         try
         {
@@ -34,7 +35,7 @@ class Program
             Console.WriteLine("Age: " + age);
             Console.WriteLine("Date of Birth: " + dob.ToString("MM-dd-yyyy"));
 
-            Console.Write("Enter 'excel' to save to Excel or 'database' to save to Database: ");
+            Console.Write("Enter 'excel' to save to Excel, 'database' to save to Database, or 'notepad' to save to Notepad: ");
             saveOption = Console.ReadLine().ToLower();
 
             if (saveOption == "excel")
@@ -46,6 +47,11 @@ class Program
             {
                 obj.SaveToDatabase(name, age, dob);
                 Console.WriteLine("Data saved to Database successfully!");
+            }
+            else if (saveOption == "notepad")
+            {
+                notepadFilePath = obj.SaveToNotepad(name, age, dob);
+                Console.WriteLine($"Data saved to Notepad successfully! File Path: {notepadFilePath}");
             }
             else
             {
@@ -100,5 +106,26 @@ class Program
             }
         }
     }
-}
 
+    public string SaveToNotepad(string name, int age, DateTime dob)
+    {
+        string notepadFilePath = "UserData.txt";
+
+        try
+        {
+            using (StreamWriter writer = new StreamWriter(notepadFilePath))
+            {
+                writer.WriteLine($"Name: {name}");
+                writer.WriteLine($"Age: {age}");
+                writer.WriteLine($"Date of Birth: {dob.ToString("MM-dd-yyyy")}");
+            }
+
+            return notepadFilePath;
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine("Error saving to Notepad: " + ex.Message);
+            return null;
+        }
+    }
+}
